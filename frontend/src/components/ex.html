@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kannada Vaishya Matrimony</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #ffe5d9, #ffcccc);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      position: relative;
+    }
+
+    .character {
+      width: 150px;
+      height: 150px;
+      background-color: white;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      flex-direction: column;
+      opacity: 0;
+    }
+
+    .bride {
+      left: -200px;
+      animation: brideSlide 1.5s forwards;
+    }
+
+    .groom {
+      right: -200px;
+      animation: groomSlide 1.5s forwards;
+    }
+
+    @keyframes brideSlide {
+      0% { left: -200px; opacity: 0; }
+      100% { left: 100px; opacity: 1; }
+    }
+
+    @keyframes groomSlide {
+      0% { right: -200px; opacity: 0; }
+      100% { right: 100px; opacity: 1; }
+    }
+
+    /* Heart Animation */
+    .heart {
+      font-size: 2.5rem;
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%) scale(0);
+      opacity: 0;
+      animation: heartPop 1s 3s forwards;
+    }
+
+    @keyframes heartPop {
+      0% {
+        transform: translateX(-50%) scale(0);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(-50%) scale(1.2);
+        opacity: 1;
+      }
+    }
+
+    .label {
+      margin-top: 10px;
+      padding: 6px 16px;
+      background-color: #ff8552;
+      color: white;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .title {
+      margin-top: 200px;
+      font-size: 2.5rem;
+      font-family: 'Great Vibes', cursive;
+      color: #ff7f50;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #5a2a27;
+      margin-top: 10px;
+    }
+
+    .desc {
+      color: #663131;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .enter-btn {
+      padding: 12px 30px;
+      background: #ff7e67;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(255, 126, 103, 0.4);
+      transition: background 0.3s;
+    }
+
+    .enter-btn:hover {
+      background: #ff624c;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="character bride">
+      <div>👰</div>
+      <div class="label">Bride</div>
+    </div>
+
+    <div class="character groom">
+      <div>🤵</div>
+      <div class="label">Groom</div>
+    </div>
+
+    <div class="heart">💖</div>
+
+    <div class="title">Kannada Vaishya Matrimony</div>
+    <div class="subtitle">Find Your Perfect Match</div>
+    <div class="desc">Connecting Hearts in the Kannada Vaishya Community</div>
+
+    <button class="enter-btn" onclick="window.location.href='home.html'">Enter ➜</button>
+  </div>
+
+</body>
+</html>
