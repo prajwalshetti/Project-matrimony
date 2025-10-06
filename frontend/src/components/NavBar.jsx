@@ -1,9 +1,32 @@
 import { NavLink } from "react-router-dom";
-import { User, Settings, Search, Users, Heart, MessageSquare, Menu, X } from 'lucide-react';
+import { User, Settings, Search, Users, Heart, MessageSquare, Menu, X, LogOut } from 'lucide-react';
 import { useState } from "react";
+import axios from "axios";
 
 function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/user/logoutuser",
+        {},
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        // close mobile menu (optional) and redirect
+        setMobileMenuOpen(false);
+        window.location.href = "/login";
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("Logout failed. Please try again.");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   const NavItem = ({ to, children, end = false }) => (
     <NavLink
@@ -11,7 +34,7 @@ function NavBar() {
       end={end}
       onClick={() => setMobileMenuOpen(false)}
       className={({ isActive }) =>
-        `flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+        `flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 w-full ${
           isActive
             ? "text-white bg-gradient-to-r from-orange-500 to-red-500 shadow-lg font-semibold"
             : "text-gray-700 hover:text-orange-600 hover:bg-orange-50"
@@ -32,7 +55,7 @@ function NavBar() {
               <Heart className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-gray-800">Kannada Vaishya</h1>
+              <h1 className="text-lg font-bold text-gray-800">Vaishya Samaja</h1>
               <p className="text-xs text-orange-600">Matrimony</p>
             </div>
           </div>
@@ -48,7 +71,7 @@ function NavBar() {
               <Settings className="w-4 h-4" />
               <span>Preferences</span>
             </NavItem>
-            
+
             <NavItem to="/dashboard/search">
               <Search className="w-4 h-4" />
               <span>Search</span>
@@ -68,12 +91,23 @@ function NavBar() {
               <MessageSquare className="w-4 h-4" />
               <span>Feedback</span>
             </NavItem>
+
+            {/* Logout Button (desktop) */}
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LogOut className="w-4 h-4" />
+              {loggingOut ? "..." : "Logout"}
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-orange-50 transition-colors"
+            aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
               <X className="h-6 w-6" />
@@ -95,7 +129,7 @@ function NavBar() {
               <Settings className="w-4 h-4" />
               <span>Preferences</span>
             </NavItem>
-            
+
             <NavItem to="/dashboard/search">
               <Search className="w-4 h-4" />
               <span>Search</span>
@@ -115,6 +149,18 @@ function NavBar() {
               <MessageSquare className="w-4 h-4" />
               <span>Feedback</span>
             </NavItem>
+
+            {/* Logout Button (mobile) */}
+            <div className="px-4">
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <LogOut className="w-4 h-4" />
+                {loggingOut ? "..." : "Logout"}
+              </button>
+            </div>
           </div>
         )}
       </div>

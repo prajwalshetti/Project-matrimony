@@ -52,6 +52,7 @@ const paymentSchema = new Schema({
     extraPhotos: [{ type: String }], // Cloudinary URLs
     payment: paymentSchema,
     isPaymentDone: { type: Boolean, default: false },
+    isProfileCompleted: { type: Boolean, default: false },
   
   }, { timestamps: true });
 
