@@ -152,7 +152,7 @@ function Login() {
                         {/* Footer Actions */}
                         <div className="grid grid-cols-2 gap-4">
                             <button
-                                onClick={() => navigate("/")}
+                                onClick={() => navigate("/register")}
                                 className="flex items-center justify-center py-3 px-4 border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-orange-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 transition-all"
                             >
                                 <UserPlus className="h-4 w-4 mr-2" />
