@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { LogIn, Mail, Lock, UserPlus, Home, AlertCircle, CheckCircle, Heart, Users } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ function Login() {
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { setUserid, setName, setIsProfileCompleted } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,6 +26,11 @@ function Login() {
             }, { withCredentials: true });
 
             if (response.status === 200) {
+                console.log(response)
+                const { _id, name, isProfileCompleted: isProfileCompleted } = response.data;
+                setUserid(_id);
+                setName(name);
+                setIsProfileCompleted(isProfileCompleted || false);
                 setSuccess("Login successful");
                 setTimeout(() => navigate("/dashboard"), 1500);
             } else {

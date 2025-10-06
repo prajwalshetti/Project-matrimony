@@ -1,19 +1,21 @@
 import { useState } from 'react'
 import './App.css'
 import {BrowserRouter,Route, Routes} from "react-router-dom"; 
-import Register from "./components/Register";
-import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
-import Profile from './components/Profile';
-import Preferences from './components/Preferences';
-import Requests from './components/Requests';
-import Search from './components/Search';
-import Connections from './components/Connections';
-import Feedback from './components/Feedback';
-import LandingPage from './components/LandingPage';
+import Register from "./components/Register.jsx";
+import Login from "./components/Login.jsx";
+import Dashboard from "./components/Dashboard.jsx";
+import Profile from './components/Profile.jsx';
+import Preferences from './components/Preferences.jsx';
+import Requests from './components/Requests.jsx';
+import Search from './components/Search.jsx';
+import Connections from './components/Connections.jsx';
+import Feedback from './components/Feedback.jsx';
+import LandingPage from './components/LandingPage.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <AuthProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
@@ -27,6 +29,8 @@ function App() {
           <Route path="feedback" element={<Feedback />} /> 
         </Route>
       </Routes>
+      </AuthProvider>
+
     </BrowserRouter>
   );
 }
