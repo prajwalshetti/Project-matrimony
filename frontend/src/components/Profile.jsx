@@ -1,8 +1,15 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-
+import NotLoggedIn from './other_components/NotLoggedIn.jsx';
+import CompleteProfile from './other_components/CompleteProfile.jsx';
 function Profile() {
   const { userid, name, isProfileCompleted } = useAuth();
+
+  if(!userid)
+    return(<div><NotLoggedIn/></div>)
+
+  // if(!isProfileCompleted)
+  //   return(<div><CompleteProfile/></div>)
 
   return (
     <div className="p-6 max-w-2xl mx-auto bg-white rounded-lg shadow-md">
