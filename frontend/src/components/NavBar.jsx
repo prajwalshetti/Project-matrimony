@@ -2,10 +2,12 @@ import { NavLink } from "react-router-dom";
 import { User, Settings, Search, Users, Heart, MessageSquare, Menu, X, LogOut } from 'lucide-react';
 import { useState } from "react";
 import axios from "axios";
+import { useAuth } from '../context/AuthContext';
 
 function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const { clearAuth } = useAuth();
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -16,8 +18,13 @@ function NavBar() {
         { withCredentials: true }
       );
       if (response.status === 200) {
-        // close mobile menu (optional) and redirect
+        // Clear context and localStorage
+        clearAuth();
+        
+        // Close mobile menu
         setMobileMenuOpen(false);
+        
+        // Redirect to login
         window.location.href = "/login";
       }
     } catch (error) {

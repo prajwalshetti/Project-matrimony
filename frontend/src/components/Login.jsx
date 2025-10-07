@@ -26,11 +26,14 @@ function Login() {
             }, { withCredentials: true });
 
             if (response.status === 200) {
-                console.log(response)
-                const { _id, name, isProfileCompleted: isProfileCompleted } = response.data;
+                console.log(response);
+                const { _id, name, isProfileCompleted } = response.data;
+                
+                // Set context values (automatically saved to localStorage via AuthContext)
                 setUserid(_id);
                 setName(name);
                 setIsProfileCompleted(isProfileCompleted || false);
+                
                 setSuccess("Login successful");
                 setTimeout(() => navigate("/dashboard"), 1500);
             } else {
