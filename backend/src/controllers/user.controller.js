@@ -79,4 +79,56 @@ const getUserById=asyncHandler(async(req,res)=>{
     res.status(200).send(user)
 })
 
-export {register,loginuser,logoutuser,getAllUsers,getUserById}
+// Add this to your user.controller.js
+
+const updateUser = asyncHandler(async (req, res) => {
+    console.log("=== UPDATE USER STARTED ===");
+    console.log("req.user.id:", req.user.id);
+    console.log("req.body:", req.body);
+    
+    // Get user from JWT
+    const user = await User.findById(req.user.id);
+    console.log("User found in DB:", user);
+    
+    if (!user) throw new ApiError(404, "User not found");
+
+    const updates = req.body;
+
+    // Check if email is being changed
+    if (updates.email && updates.email !== user.email) {
+        const existingUser = await User.findOne({ email: updates.email });
+        if (existingUser) {
+            return res.status(400).json({ message: "Email already in use" });
+        }
+    }
+
+    // Update each field
+    Object.keys(updates).forEach(key => {
+        console.log(`Updating ${key} from "${user[key]}" to "${updates[key]}"`);
+        if (updates[key] !== undefined && updates[key] !== null) {
+            user[key] = updates[key];
+        }
+    });
+
+    console.log("User before save:", user);
+    
+    // Save the user
+    await user.save();
+    
+    console.log("User after save:", user);
+    
+    // Verify by fetching again
+    const verifyUser = await User.findById(req.user.id);
+    console.log("User verified from DB:", verifyUser);
+
+    res.status(200).json({
+        message: "User updated successfully",
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email
+        }
+    });
+});
+
+export { register, loginuser, logoutuser, getAllUsers, getUserById, updateUser }
