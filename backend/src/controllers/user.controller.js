@@ -79,6 +79,13 @@ const getUserById=asyncHandler(async(req,res)=>{
     res.status(200).send(user)
 })
 
+const getLoggedinUser=asyncHandler(async(req,res)=>{
+    const user=await User.findById(req.user.id)
+    if(!user)throw new ApiError(400,"User is not logged in")
+    
+    res.status(200).send(user)
+})
+
 // Add this to your user.controller.js
 
 const updateUser = asyncHandler(async (req, res) => {
@@ -131,4 +138,4 @@ const updateUser = asyncHandler(async (req, res) => {
     });
 });
 
-export { register, loginuser, logoutuser, getAllUsers, getUserById, updateUser }
+export { register, loginuser, logoutuser, getAllUsers, getUserById, updateUser,getLoggedinUser }

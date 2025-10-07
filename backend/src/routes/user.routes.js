@@ -1,6 +1,6 @@
 import express from "express"
 import { app } from "../app.js"
-import { loginuser, register,logoutuser, getAllUsers, getUserById, updateUser} from "../controllers/user.controller.js"
+import { loginuser, register,logoutuser, getAllUsers, getUserById, updateUser,getLoggedinUser} from "../controllers/user.controller.js"
 import { asyncHandler } from "../utils/asynchandler.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 const router=express()
@@ -12,6 +12,7 @@ router.route("/getAllUsers").get(getAllUsers)
 router.route("/getUserById/:id").get(getUserById)
 
 router.route("/updateUser").put(verifyJWT, updateUser)
+router.route("/getLoggedinUser").get(verifyJWT, getLoggedinUser)
 
 
 router.route("/checkForVerifyJWT").get(verifyJWT,async (req, res) => {
