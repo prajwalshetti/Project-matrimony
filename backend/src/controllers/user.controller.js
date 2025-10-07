@@ -6,17 +6,17 @@ import bcrypt from "bcrypt"
 import JWT from "jsonwebtoken"
 
 const register=asyncHandler( async (req,res)=>{
-    const {username,email,password}=req.body;
-    if(!username||!email||!password)
+    const {name,email,password}=req.body;
+    if(!name||!email||!password)
         res.status(400).json({message:"All fields are required"})
 
     const existedUserOnEmail=await User.findOne({email})
-    const existedUserOnUserName=await User.findOne({username})
+    // const existedUserOnUserName=await User.findOne({name})
     if(existedUserOnEmail) res.status(400).json({message:"User Already exists with the same email"})
-    if(existedUserOnUserName) res.status(400).json({message:"User Already exists with the same username"})
+    // if(existedUserOnUserName) res.status(400).json({message:"User Already exists with the same username"})
     
     const user=await User.create({
-        username:username,
+        name:name,
         email:email,
         password:password,
     })

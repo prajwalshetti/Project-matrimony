@@ -4,7 +4,7 @@ import axios from "axios";
 import { UserPlus, Mail, Lock, LogIn, Home, AlertCircle, CheckCircle, Heart, Users } from 'lucide-react';
 
 function Register() {
-    const [username, setUsername] = useState("");
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -40,7 +40,7 @@ function Register() {
 
         try {
             const response = await axios.post("http://localhost:8000/api/v1/user/register", {
-                username,
+                name,
                 email,
                 password
             });
@@ -111,8 +111,8 @@ function Register() {
                                         </div>
                                         <input
                                             type="text"
-                                            value={username}
-                                            onChange={(e) => setUsername(e.target.value)}
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
                                             placeholder="Enter your full name"
                                             className="pl-12 w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all text-gray-800 placeholder-gray-400"
                                             required
