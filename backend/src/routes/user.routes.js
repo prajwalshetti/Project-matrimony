@@ -1,8 +1,9 @@
 import express from "express"
 import { app } from "../app.js"
-import { loginuser, register,logoutuser, getAllUsers, getUserById, updateUser,getLoggedinUser} from "../controllers/user.controller.js"
+import { loginuser, register,logoutuser, getAllUsers, getUserById, updateUser,getLoggedinUser, uploadProfilePhoto} from "../controllers/user.controller.js"
 import { asyncHandler } from "../utils/asynchandler.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
+import { upload } from "../middlewares/multer.middleware.js"
 const router=express()
 
 router.route("/register").post(register)
@@ -13,6 +14,7 @@ router.route("/getUserById/:id").get(getUserById)
 
 router.route("/updateUser").put(verifyJWT, updateUser)
 router.route("/getLoggedinUser").get(verifyJWT, getLoggedinUser)
+router.post("/uploadProfilePhoto", verifyJWT, upload.single("profilePhoto"), uploadProfilePhoto);
 
 
 router.route("/checkForVerifyJWT").get(verifyJWT,async (req, res) => {

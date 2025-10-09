@@ -9,6 +9,10 @@ const Profile = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const {userid}=useAuth();
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoSuccess, setPhotoSuccess] = useState(false);
   
   const [formData, setFormData] = useState({
     // Profile Details
@@ -130,8 +134,14 @@ const Profile = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
+        if (currentStep === 4) {
+          setCurrentStep(5); // Move to photo upload step
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 1500);
+        } else {
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 3000);
+        }
       } else {
         setError(data.message || 'Failed to update profile');
       }
@@ -142,11 +152,53 @@ const Profile = () => {
     }
   };
 
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      setError('');
+    }
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!photoFile) return;
+
+    setUploadingPhoto(true);
+    setError('');
+    setPhotoSuccess(false);
+
+    try {
+      const formData = new FormData();
+      formData.append('profilePhoto', photoFile);
+
+      const response = await fetch('http://localhost:8000/api/v1/user/uploadProfilePhoto', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPhotoSuccess(true);
+        setTimeout(() => setPhotoSuccess(false), 3000);
+      } else {
+        setError(data.message || 'Failed to upload photo');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const steps = [
     { number: 1, title: 'Personal', icon: User },
     { number: 2, title: 'Professional', icon: Briefcase },
     { number: 3, title: 'Family', icon: Home },
-    { number: 4, title: 'Preferences', icon: Coffee }
+    { number: 4, title: 'Preferences', icon: Coffee },
+    { number: 5, title: 'Photo', icon: Save }
   ];
 
   if(!userid){
@@ -556,6 +608,83 @@ const Profile = () => {
               </div>
             )}
 
+            {/* Step 5: Photo Upload */}
+            {currentStep === 5 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-orange-200">
+                  Upload Profile Photo
+                </h2>
+                
+                <div className="flex flex-col items-center gap-6">
+                  {/* Photo Preview */}
+                  {photoPreview ? (
+                    <div className="relative w-48 h-48">
+                      <img 
+                        src={photoPreview} 
+                        alt="Profile Preview" 
+                        className="w-full h-full rounded-full object-cover border-4 border-orange-200"
+                      />
+                      <button
+                        onClick={() => {
+                          setPhotoFile(null);
+                          setPhotoPreview(null);
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-48 h-48 rounded-full border-4 border-dashed border-gray-200 flex items-center justify-center">
+                      <User className="w-20 h-20 text-gray-300" />
+                    </div>
+                  )}
+
+                  {/* Upload Controls */}
+                  <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+                    <label className="w-full">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoSelect}
+                        className="hidden"
+                      />
+                      <div className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium text-center cursor-pointer hover:shadow-lg transition">
+                        Select Photo
+                      </div>
+                    </label>
+
+                    {photoFile && (
+                      <button
+                        onClick={handlePhotoUpload}
+                        disabled={uploadingPhoto}
+                        className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg font-medium hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {uploadingPhoto ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Uploading...
+                          </>
+                        ) : (
+                          <>Upload Photo</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Success Message */}
+                  {photoSuccess && (
+                    <div className="p-3 bg-green-50 text-green-700 rounded-lg flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5" />
+                      Photo uploaded successfully!
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Navigation Buttons */}
 <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
   <div className="flex flex-col md:flex-row justify-between items-center w-full gap-4">
@@ -592,7 +721,7 @@ const Profile = () => {
       {currentStep < 4 ? (
         <button
           type="button"
-          onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
+          onClick={() => setCurrentStep(prev => Math.min(5, prev + 1))}
           className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition"
           style={{ minWidth: '110px' }}
         >
@@ -622,7 +751,7 @@ const Profile = () => {
           <Save className="w-5 h-5" />
           Save Profile
         </button>
-      ) : (
+      ) : currentStep === 4 ? (
         <button
           type="submit"
           disabled={loading}
@@ -637,9 +766,19 @@ const Profile = () => {
           ) : (
             <>
               <Save className="w-5 h-5" />
-              Save Profile
+              Save & Continue
             </>
           )}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="px-8 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition flex items-center gap-2"
+          style={{ minWidth: '130px' }}
+        >
+          <CheckCircle className="w-5 h-5" />
+          Finish
         </button>
       )}
     </div>

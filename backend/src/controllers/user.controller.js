@@ -4,6 +4,9 @@ import {User} from "../models/user.model.js"
 import { comparePassword, encryptPassword } from "../helper/auth.helper.js";
 import bcrypt from "bcrypt"
 import JWT from "jsonwebtoken"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"; // adjust path as needed
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs"
 
 const register=asyncHandler( async (req,res)=>{
     const {name,email,password}=req.body;
@@ -138,4 +141,43 @@ const updateUser = asyncHandler(async (req, res) => {
     });
 });
 
-export { register, loginuser, logoutuser, getAllUsers, getUserById, updateUser,getLoggedinUser }
+const uploadProfilePhoto = asyncHandler(async (req, res) => {
+    console.log("=== UPLOAD PROFILE PHOTO STARTED ===");
+    console.log("req.user.id:", req.user.id);
+    console.log("req.file:", req.file);
+    
+    // Get user from JWT
+    const user = await User.findById(req.user.id);
+    if (!user) throw new ApiError(404, "User not found");
+
+    // Check if file is uploaded
+    if (!req.file) {
+        throw new ApiError(400, "Profile photo file is required");
+    }
+
+    // Get the local file path from multer
+    const localFilePath = req.file.path;
+    console.log("Local file path:", localFilePath);
+
+    // Upload to Cloudinary
+    const uploadResult = await uploadOnCloudinary(localFilePath);
+    
+    if (!uploadResult) {
+        throw new ApiError(500, "Failed to upload profile photo to Cloudinary");
+    }
+
+    console.log("Cloudinary upload result:", uploadResult.secure_url);
+
+    // Update user with new profile photo URL
+    user.profilePhoto = uploadResult.secure_url;
+
+    await user.save();
+    console.log("User profile photo updated in DB");
+
+    res.status(200).json({
+        message: "Profile photo uploaded successfully",
+        profilePhoto: user.profilePhoto
+    });
+});
+
+export { register, loginuser, logoutuser, getAllUsers, getUserById, updateUser,getLoggedinUser,uploadProfilePhoto }
