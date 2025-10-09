@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, User, Briefcase, Home, Coffee, Save, CheckCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import NotLoggedIn from './other_components/NotLoggedIn';
 
 const Profile = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const {userid}=useAuth();
   
   const [formData, setFormData] = useState({
     // Profile Details
@@ -145,6 +148,10 @@ const Profile = () => {
     { number: 3, title: 'Family', icon: Home },
     { number: 4, title: 'Preferences', icon: Coffee }
   ];
+
+  if(!userid){
+    return(<NotLoggedIn/>);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-100 py-12 px-4">
@@ -550,61 +557,94 @@ const Profile = () => {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-                disabled={currentStep === 1}
-                className={`px-6 py-2 rounded-lg font-medium transition ${
-                  currentStep === 1
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Previous
-              </button>
+<div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+  <div className="flex flex-col md:flex-row justify-between items-center w-full gap-4">
+    {/* Previous button, dots, and Next button - same line on mobile */}
+    <div className="flex gap-3 w-full md:w-auto justify-between md:justify-start items-center order-1">
+      <button
+        type="button"
+        onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+        disabled={currentStep === 1}
+        className={`px-6 py-2 rounded-lg font-medium transition ${
+          currentStep === 1
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        }`}
+        style={{ minWidth: '110px' }}
+      >
+        Previous
+      </button>
 
-              <div className="flex gap-2">
-                {steps.map(step => (
-                  <div
-                    key={step.number}
-                    className={`w-2 h-2 rounded-full ${
-                      currentStep === step.number
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 w-8'
-                        : 'bg-gray-300'
-                    } transition-all`}
-                  ></div>
-                ))}
-              </div>
+      {/* Step indicators */}
+      <div className="flex gap-2">
+        {steps.map(step => (
+          <div
+            key={step.number}
+            className={`w-2 h-2 rounded-full ${
+              currentStep === step.number
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 w-8'
+                : 'bg-gray-300'
+            } transition-all`}
+          ></div>
+        ))}
+      </div>
 
-              {currentStep < 4 ? (
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
-                  className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition"
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-8 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      Save Profile
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+      {currentStep < 4 ? (
+        <button
+          type="button"
+          onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
+          className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition"
+          style={{ minWidth: '110px' }}
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="px-6 py-2 bg-gray-200 text-gray-400 rounded-lg font-medium cursor-not-allowed"
+          disabled
+          style={{ minWidth: '110px' }}
+        >
+          Next
+        </button>
+      )}
+    </div>
+
+    {/* Save button */}
+    <div className="flex w-full md:w-auto justify-center md:justify-end order-2">
+      {currentStep < 4 ? (
+        <button
+          type="button"
+          className="px-8 py-2 bg-gray-200 text-gray-400 rounded-lg font-medium cursor-not-allowed flex items-center gap-2"
+          disabled
+          style={{ minWidth: '130px' }}
+        >
+          <Save className="w-5 h-5" />
+          Save Profile
+        </button>
+      ) : (
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-8 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          style={{ minWidth: '130px' }}
+        >
+          {loading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-5 h-5" />
+              Save Profile
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  </div>
+</div>
           </div>
         </form>
       </div>

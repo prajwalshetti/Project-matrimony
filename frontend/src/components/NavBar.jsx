@@ -1,13 +1,15 @@
-import { NavLink } from "react-router-dom";
-import { User, Settings, Search, Users, Heart, MessageSquare, Menu, X, LogOut } from 'lucide-react';
+import { NavLink, useNavigate } from "react-router-dom";
+import { User, Settings, Search, Users, Heart, MessageSquare, Menu, X, LogOut,LogIn } from 'lucide-react';
 import { useState } from "react";
 import axios from "axios";
 import { useAuth } from '../context/AuthContext';
+import NotLoggedIn from './other_components/NotLoggedIn';
 
 function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const { clearAuth } = useAuth();
+  const { userid, clearAuth } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -100,14 +102,23 @@ function NavBar() {
             </NavItem>
 
             {/* Logout Button (desktop) */}
-            <button
+            {userid&&<button
               onClick={handleLogout}
               disabled={loggingOut}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <LogOut className="w-4 h-4" />
               {loggingOut ? "..." : "Logout"}
-            </button>
+            </button>}
+
+            {/* Login Button (desktop) */}
+            {!userid&&<button
+              onClick={()=>{navigate  ("/login")}}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-green-600 hover:bg-green-50 border border-green-200 hover:border-green-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LogIn className="w-4 h-4" />
+              {"Login"}
+            </button>}
           </div>
 
           {/* Mobile Menu Button */}
@@ -157,16 +168,26 @@ function NavBar() {
               <span>Feedback</span>
             </NavItem>
 
-            {/* Logout Button (mobile) */}
-            <div className="px-4">
-              <button
-                onClick={handleLogout}
-                disabled={loggingOut}
-                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <LogOut className="w-4 h-4" />
-                {loggingOut ? "..." : "Logout"}
-              </button>
+            {/* Logout/Login Buttons (mobile) */}
+            <div className="px-4 space-y-2">
+              {userid ? (
+                <button
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {loggingOut ? "..." : "Logout"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate("/login")}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl text-sm font-medium text-green-600 hover:bg-green-50 border border-green-200 hover:border-green-300 transition-all duration-200"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Login
+                </button>
+              )}
             </div>
           </div>
         )}
