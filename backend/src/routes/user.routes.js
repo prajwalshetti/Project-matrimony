@@ -4,6 +4,7 @@ import { loginuser, register,logoutuser, getAllUsers, getUserById, updateUser,ge
 import { asyncHandler } from "../utils/asynchandler.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 import { upload } from "../middlewares/multer.middleware.js"
+import { isProfileCompleted } from "../middlewares/ProfileCompletion.middleware.js"
 const router=express()
 
 router.route("/register").post(register)
@@ -21,6 +22,13 @@ router.route("/checkForVerifyJWT").get(verifyJWT,async (req, res) => {
     return res.status(200).json({
         message: "You have access to this protected route!",
         user: req.user, // The authenticated user data will be available here
+    });
+})
+
+router.route("/testProfileCompletion").get(verifyJWT, isProfileCompleted, async (req, res) => {
+    return res.status(200).json({
+        message: "Profile completion check successful!",
+        profileCompletion: req.profileCompletion
     });
 })
 

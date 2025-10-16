@@ -3,12 +3,15 @@ import { Heart, User, Briefcase, Home, Coffee, Save, CheckCircle } from 'lucide-
 import { useAuth } from '../context/AuthContext';
 import NotLoggedIn from './other_components/NotLoggedIn';
 
+
 const Profile = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const {userid}=useAuth();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { setUserid, setName, setIsProfileCompleted } = useAuth();
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -45,59 +48,82 @@ const Profile = () => {
     phoneNumber: ''
   });
 
-  useEffect(() => {
-    // Fetch current user data
-    fetchUserData();
-  }, []);
 
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/v1/user/getLoggedinUser', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+  // Check authentication and load user data on mount
+  useEffect(() => {
+    const checkAuthAndLoadData = async () => {
+      setCheckingAuth(true);
       
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('Fetched user data:', userData);
+      try {
+        const response = await fetch('http://localhost:8000/api/v1/user/getLoggedinUser', {
+          method: 'GET',
+          credentials: 'include', // Sends HttpOnly cookie automatically
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
         
-        // Only update fields that have actual values
-        setFormData(prev => ({
-          ...prev,
-          name: userData.name || prev.name,
-          lastName: userData.lastName || prev.lastName,
-          dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : prev.dateOfBirth,
-          gender: userData.gender || prev.gender,
-          occupationType: userData.occupationType || prev.occupationType,
-          occupation: userData.occupation || prev.occupation,
-          height: userData.height || prev.height,
-          education: userData.education || prev.education,
-          languagesKnown: userData.languagesKnown || prev.languagesKnown,
-          fathersName: userData.fathersName || prev.fathersName,
-          fathersOccupation: userData.fathersOccupation || prev.fathersOccupation,
-          mothersName: userData.mothersName || prev.mothersName,
-          mothersOccupation: userData.mothersOccupation || prev.mothersOccupation,
-          residentCountry: userData.residentCountry || prev.residentCountry,
-          currentCity: userData.currentCity || prev.currentCity,
-          hometown: userData.hometown || prev.hometown,
-          interests: userData.interests || prev.interests,
-          disabilities: userData.disabilities || prev.disabilities,
-          futurePlans: userData.futurePlans || prev.futurePlans,
-          aboutMyself: userData.aboutMyself || prev.aboutMyself,
-          foodPreference: userData.foodPreference || prev.foodPreference,
-          gotra: userData.gotra || prev.gotra,
-          phoneNumber: userData.phoneNumber || prev.phoneNumber,
-        }));
-      } else {
-        console.error('Failed to fetch user data:', response.status, response.statusText);
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('User authenticated. Fetched user data:', userData);
+          
+          // Update context with user data
+          if (setUserid && userData._id) {
+            setUserid(userData._id);
+          }
+          if (setName && userData.name) {
+            setName(userData.name);
+          }
+          if (setIsProfileCompleted && userData.isProfileCompleted !== undefined) {
+            setIsProfileCompleted(userData.isProfileCompleted);
+          }
+          
+          // Update form data
+          setFormData(prev => ({
+            ...prev,
+            name: userData.name || prev.name,
+            lastName: userData.lastName || prev.lastName,
+            dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : prev.dateOfBirth,
+            gender: userData.gender || prev.gender,
+            occupationType: userData.occupationType || prev.occupationType,
+            occupation: userData.occupation || prev.occupation,
+            height: userData.height || prev.height,
+            education: userData.education || prev.education,
+            languagesKnown: userData.languagesKnown || prev.languagesKnown,
+            fathersName: userData.fathersName || prev.fathersName,
+            fathersOccupation: userData.fathersOccupation || prev.fathersOccupation,
+            mothersName: userData.mothersName || prev.mothersName,
+            mothersOccupation: userData.mothersOccupation || prev.mothersOccupation,
+            residentCountry: userData.residentCountry || prev.residentCountry,
+            currentCity: userData.currentCity || prev.currentCity,
+            hometown: userData.hometown || prev.hometown,
+            interests: userData.interests || prev.interests,
+            disabilities: userData.disabilities || prev.disabilities,
+            futurePlans: userData.futurePlans || prev.futurePlans,
+            aboutMyself: userData.aboutMyself || prev.aboutMyself,
+            foodPreference: userData.foodPreference || prev.foodPreference,
+            gotra: userData.gotra || prev.gotra,
+            phoneNumber: userData.phoneNumber || prev.phoneNumber,
+          }));
+          
+          setIsAuthenticated(true);
+        } else {
+          // API returned error (401, 403, etc.) - user not authenticated
+          console.log('User not authenticated. Status:', response.status);
+          setIsAuthenticated(false);
+        }
+      } catch (err) {
+        // Network error or other issue
+        console.error('Error checking authentication:', err);
+        setIsAuthenticated(false);
+      } finally {
+        setCheckingAuth(false);
       }
-    } catch (err) {
-      console.error('Error fetching user data:', err);
-    }
-  };
+    };
+
+    checkAuthAndLoadData();
+  }, []); // Run only once on mount
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -107,6 +133,7 @@ const Profile = () => {
     }));
   };
 
+
   const handleArrayInput = (field, value) => {
     const items = value.split(',').map(item => item.trim()).filter(item => item);
     setFormData(prev => ({
@@ -115,11 +142,13 @@ const Profile = () => {
     }));
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess(false);
+
 
     try {
       const response = await fetch('http://localhost:8000/api/v1/user/updateUser', {
@@ -131,7 +160,9 @@ const Profile = () => {
         body: JSON.stringify(formData)
       });
 
+
       const data = await response.json();
+
 
       if (response.ok) {
         if (currentStep === 4) {
@@ -152,6 +183,7 @@ const Profile = () => {
     }
   };
 
+
   const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -161,16 +193,20 @@ const Profile = () => {
     }
   };
 
+
   const handlePhotoUpload = async () => {
     if (!photoFile) return;
+
 
     setUploadingPhoto(true);
     setError('');
     setPhotoSuccess(false);
 
+
     try {
       const formData = new FormData();
       formData.append('profilePhoto', photoFile);
+
 
       const response = await fetch('http://localhost:8000/api/v1/user/uploadProfilePhoto', {
         method: 'POST',
@@ -178,7 +214,9 @@ const Profile = () => {
         body: formData
       });
 
+
       const data = await response.json();
+
 
       if (response.ok) {
         setPhotoSuccess(true);
@@ -193,6 +231,7 @@ const Profile = () => {
     }
   };
 
+
   const steps = [
     { number: 1, title: 'Personal', icon: User },
     { number: 2, title: 'Professional', icon: Briefcase },
@@ -201,9 +240,24 @@ const Profile = () => {
     { number: 5, title: 'Photo', icon: Save }
   ];
 
-  if(!userid){
-    return(<NotLoggedIn/>);
+
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 text-lg">Verifying authentication...</p>
+        </div>
+      </div>
+    );
   }
+
+
+  // Show NotLoggedIn if not authenticated
+  if (!isAuthenticated) {
+    return <NotLoggedIn />;
+  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-100 py-12 px-4">
@@ -213,6 +267,7 @@ const Profile = () => {
         <div className="absolute top-40 right-10 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-700"></div>
         <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
       </div>
+
 
       <div className="max-w-4xl mx-auto relative">
         {/* Header */}
@@ -226,6 +281,7 @@ const Profile = () => {
           <p className="text-gray-600">Complete your journey to find your perfect match</p>
         </div>
 
+
         {/* Success Message */}
         {success && (
           <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg flex items-center gap-3 animate-pulse">
@@ -234,6 +290,7 @@ const Profile = () => {
           </div>
         )}
 
+
         {/* Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
@@ -241,9 +298,46 @@ const Profile = () => {
           </div>
         )}
 
+
         {/* Progress Steps */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex justify-between items-center">
+        <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-8">
+          {/* Mobile: Show only current step with dots */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {steps.map((step) => {
+                  const Icon = step.icon;
+                  const isActive = currentStep === step.number;
+                  
+                  if (isActive) {
+                    return (
+                      <div key={step.number} className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-orange-500 to-red-500">
+                          <Icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Step {currentStep} of {steps.length}</p>
+                          <p className="text-sm font-medium text-orange-600">{step.title}</p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            </div>
+            
+            {/* Progress bar for mobile */}
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / steps.length) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Desktop: Show all steps */}
+          <div className="hidden md:flex justify-between items-center">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === step.number;
@@ -302,6 +396,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                     <input
@@ -314,6 +409,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
                     <input
@@ -324,6 +420,7 @@ const Profile = () => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
                     />
                   </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
@@ -340,6 +437,7 @@ const Profile = () => {
                     </select>
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Height</label>
                     <input
@@ -352,6 +450,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                     <input
@@ -363,6 +462,7 @@ const Profile = () => {
                       placeholder="Enter your phone number"
                     />
                   </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Food Preference</label>
@@ -379,6 +479,7 @@ const Profile = () => {
                     </select>
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Gotra</label>
                     <input
@@ -391,6 +492,7 @@ const Profile = () => {
                     />
                   </div>
                 </div>
+
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">About Myself</label>
@@ -405,6 +507,7 @@ const Profile = () => {
                 </div>
               </div>
             )}
+
 
             {/* Step 2: Professional Details */}
             {currentStep === 2 && (
@@ -429,6 +532,7 @@ const Profile = () => {
                     </select>
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Occupation</label>
                     <input
@@ -441,6 +545,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Education</label>
                     <input
@@ -452,6 +557,7 @@ const Profile = () => {
                       placeholder="e.g., B.Tech from Delhi"
                     />
                   </div>
+
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Languages Known (comma separated)</label>
@@ -466,6 +572,7 @@ const Profile = () => {
                 </div>
               </div>
             )}
+
 
             {/* Step 3: Family Details */}
             {currentStep === 3 && (
@@ -487,6 +594,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Father's Occupation</label>
                     <input
@@ -499,6 +607,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Mother's Name</label>
                     <input
@@ -510,6 +619,7 @@ const Profile = () => {
                       placeholder="Enter mother's name"
                     />
                   </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Mother's Occupation</label>
@@ -525,6 +635,7 @@ const Profile = () => {
                 </div>
               </div>
             )}
+
 
             {/* Step 4: Location & Preferences */}
             {currentStep === 4 && (
@@ -546,6 +657,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Current City</label>
                     <input
@@ -557,6 +669,7 @@ const Profile = () => {
                       placeholder="e.g., Mumbai"
                     />
                   </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Hometown</label>
@@ -570,6 +683,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Disabilities (if any)</label>
                     <input
@@ -582,6 +696,7 @@ const Profile = () => {
                     />
                   </div>
 
+
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Interests (comma separated)</label>
                     <input
@@ -592,6 +707,7 @@ const Profile = () => {
                       placeholder="e.g., Reading, Traveling, Cooking"
                     />
                   </div>
+
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Future Plans</label>
@@ -607,6 +723,7 @@ const Profile = () => {
                 </div>
               </div>
             )}
+
 
             {/* Step 5: Photo Upload */}
             {currentStep === 5 && (
@@ -625,6 +742,7 @@ const Profile = () => {
                         className="w-full h-full rounded-full object-cover border-4 border-orange-200"
                       />
                       <button
+                        type="button"
                         onClick={() => {
                           setPhotoFile(null);
                           setPhotoPreview(null);
@@ -642,6 +760,7 @@ const Profile = () => {
                     </div>
                   )}
 
+
                   {/* Upload Controls */}
                   <div className="flex flex-col items-center gap-4 w-full max-w-xs">
                     <label className="w-full">
@@ -656,8 +775,10 @@ const Profile = () => {
                       </div>
                     </label>
 
+
                     {photoFile && (
                       <button
+                        type="button"
                         onClick={handlePhotoUpload}
                         disabled={uploadingPhoto}
                         className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg font-medium hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -674,6 +795,7 @@ const Profile = () => {
                     )}
                   </div>
 
+
                   {/* Success Message */}
                   {photoSuccess && (
                     <div className="p-3 bg-green-50 text-green-700 rounded-lg flex items-center gap-2">
@@ -685,11 +807,105 @@ const Profile = () => {
               </div>
             )}
 
+
             {/* Navigation Buttons */}
-<div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-  <div className="flex flex-col md:flex-row justify-between items-center w-full gap-4">
-    {/* Previous button, dots, and Next button - same line on mobile */}
-    <div className="flex gap-3 w-full md:w-auto justify-between md:justify-start items-center order-1">
+{/* Navigation Buttons */}
+<div className="flex flex-col gap-4 mt-8 pt-6 border-t border-gray-200">
+  {/* Mobile: Stacked layout */}
+  <div className="md:hidden flex flex-col gap-3">
+    {/* Progress dots */}
+    <div className="flex gap-2 justify-center">
+      {steps.map(step => (
+        <div
+          key={step.number}
+          className={`w-2 h-2 rounded-full ${
+            currentStep === step.number
+              ? 'bg-gradient-to-r from-orange-500 to-red-500 w-8'
+              : 'bg-gray-300'
+          } transition-all`}
+        ></div>
+      ))}
+    </div>
+    
+    {/* Navigation buttons */}
+    <div className="flex gap-3">
+      <button
+        type="button"
+        onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+        disabled={currentStep === 1}
+        className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+          currentStep === 1
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        }`}
+      >
+        Previous
+      </button>
+
+      {currentStep < 4 ? (
+        <button
+          type="button"
+          onClick={() => setCurrentStep(prev => Math.min(5, prev + 1))}
+          className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transition"
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="flex-1 px-4 py-2 bg-gray-200 text-gray-400 rounded-lg font-medium cursor-not-allowed"
+          disabled
+        >
+          Next
+        </button>
+      )}
+    </div>
+
+    {/* Save button */}
+    <div className="flex">
+      {currentStep < 4 ? (
+        <button
+          type="button"
+          className="w-full px-4 py-2 bg-gray-200 text-gray-400 rounded-lg font-medium cursor-not-allowed flex items-center justify-center gap-2"
+          disabled
+        >
+          <Save className="w-5 h-5" />
+          Save Profile
+        </button>
+      ) : currentStep === 4 ? (
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-5 h-5" />
+              Save & Continue
+            </>
+          )}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transition flex items-center justify-center gap-2"
+        >
+          <CheckCircle className="w-5 h-5" />
+          Finish
+        </button>
+      )}
+    </div>
+  </div>
+
+  {/* Desktop: Original horizontal layout */}
+  <div className="hidden md:flex flex-row justify-between items-center w-full gap-4">
+    <div className="flex gap-3 items-center">
       <button
         type="button"
         onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
@@ -740,7 +956,7 @@ const Profile = () => {
     </div>
 
     {/* Save button */}
-    <div className="flex w-full md:w-auto justify-center md:justify-end order-2">
+    <div className="flex">
       {currentStep < 4 ? (
         <button
           type="button"
@@ -784,11 +1000,13 @@ const Profile = () => {
     </div>
   </div>
 </div>
+
           </div>
         </form>
       </div>
     </div>
   );
 };
+
 
 export default Profile;
