@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Heart, CheckCircle, XCircle, AlertCircle, ArrowRight, CreditCard } from 'lucide-react';
+import { Heart, CheckCircle, XCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const NotProfileCompleted = () => {
@@ -54,13 +54,13 @@ const NotProfileCompleted = () => {
   };
 
   const sections = [
-    { key: 'personal', label: 'Personal Information', route: '/profile' },
-    { key: 'professional', label: 'Professional Details', route: '/profile' },
-    { key: 'family', label: 'Family Information', route: '/profile' },
-    { key: 'location', label: 'Location Details', route: '/profile' },
-    { key: 'preferences', label: 'Interests & Plans', route: '/profile' },
-    { key: 'photo', label: 'Profile Photo', route: '/profile' },
-    { key: 'payment', label: 'Payment', route: '/payment' },
+    { key: 'personal', label: 'Personal Information' },
+    { key: 'professional', label: 'Professional Details' },
+    { key: 'family', label: 'Family Information' },
+    { key: 'location', label: 'Location Details' },
+    { key: 'preferences', label: 'Interests & Plans' },
+    { key: 'photo', label: 'Profile Photo' },
+    { key: 'payment', label: 'Payment' },
   ];
 
   return (
@@ -105,22 +105,6 @@ const NotProfileCompleted = () => {
             </p>
           </div>
 
-          {/* Status Message */}
-          <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-1">Profile Incomplete</h3>
-                <p className="text-sm text-gray-600">
-                  {profileData?.isDetailsCompleted 
-                    ? 'All profile details are filled! Please complete the payment to access all features.'
-                    : `Please complete the following ${profileData?.missingFieldsCount} item(s) to unlock all features.`
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Section Status */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Completion Checklist</h3>
@@ -130,7 +114,7 @@ const NotProfileCompleted = () => {
                 className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
                   profileData?.sectionCompletion[section.key]
                     ? 'bg-green-50 border-green-200'
-                    : 'bg-red-50 border-red-200 hover:shadow-md'
+                    : 'bg-red-50 border-red-200'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -142,15 +126,6 @@ const NotProfileCompleted = () => {
                     </p>
                   </div>
                 </div>
-                {!profileData?.sectionCompletion[section.key] && (
-                  <button
-                    onClick={() => navigate(section.route)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition"
-                  >
-                    Complete
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
               </div>
             ))}
           </div>
@@ -181,42 +156,15 @@ const NotProfileCompleted = () => {
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          {!profileData?.isDetailsCompleted ? (
-            <button
-              onClick={() => navigate('/profile')}
-              className="flex-1 px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-2"
-            >
-              Complete Profile Details
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          ) : !profileData?.isPaymentDone ? (
-            <button
-              onClick={() => navigate('/payment')}
-              className="flex-1 px-8 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-2"
-            >
-              <CreditCard className="w-5 h-5" />
-              Complete Payment
-            </button>
-          ) : null}
-          
+        {/* Action Button */}
+        <div className="flex justify-center">
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex-1 px-8 py-4 bg-white text-gray-700 border-2 border-gray-300 rounded-xl font-semibold text-lg hover:shadow-lg hover:border-gray-400 transition"
+            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition flex items-center gap-2"
           >
             Back to Dashboard
+            <ArrowRight className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* Motivational Message */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md">
-            <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-            <p className="text-sm text-gray-600">
-              Complete your profile to get <span className="font-semibold text-orange-600">3x more matches!</span>
-            </p>
-          </div>
         </div>
       </div>
     </div>
