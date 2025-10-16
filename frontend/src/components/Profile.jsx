@@ -50,79 +50,84 @@ const Profile = () => {
 
 
   // Check authentication and load user data on mount
-  useEffect(() => {
-    const checkAuthAndLoadData = async () => {
-      setCheckingAuth(true);
-      
-      try {
-        const response = await fetch('http://localhost:8000/api/v1/user/getLoggedinUser', {
-          method: 'GET',
-          credentials: 'include', // Sends HttpOnly cookie automatically
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        
-        if (response.ok) {
-          const userData = await response.json();
-          console.log('User authenticated. Fetched user data:', userData);
-          
-          // Update context with user data
-          if (setUserid && userData._id) {
-            setUserid(userData._id);
-          }
-          if (setName && userData.name) {
-            setName(userData.name);
-          }
-          if (setIsProfileCompleted && userData.isProfileCompleted !== undefined) {
-            setIsProfileCompleted(userData.isProfileCompleted);
-          }
-          
-          // Update form data
-          setFormData(prev => ({
-            ...prev,
-            name: userData.name || prev.name,
-            lastName: userData.lastName || prev.lastName,
-            dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : prev.dateOfBirth,
-            gender: userData.gender || prev.gender,
-            occupationType: userData.occupationType || prev.occupationType,
-            occupation: userData.occupation || prev.occupation,
-            height: userData.height || prev.height,
-            education: userData.education || prev.education,
-            languagesKnown: userData.languagesKnown || prev.languagesKnown,
-            fathersName: userData.fathersName || prev.fathersName,
-            fathersOccupation: userData.fathersOccupation || prev.fathersOccupation,
-            mothersName: userData.mothersName || prev.mothersName,
-            mothersOccupation: userData.mothersOccupation || prev.mothersOccupation,
-            residentCountry: userData.residentCountry || prev.residentCountry,
-            currentCity: userData.currentCity || prev.currentCity,
-            hometown: userData.hometown || prev.hometown,
-            interests: userData.interests || prev.interests,
-            disabilities: userData.disabilities || prev.disabilities,
-            futurePlans: userData.futurePlans || prev.futurePlans,
-            aboutMyself: userData.aboutMyself || prev.aboutMyself,
-            foodPreference: userData.foodPreference || prev.foodPreference,
-            gotra: userData.gotra || prev.gotra,
-            phoneNumber: userData.phoneNumber || prev.phoneNumber,
-          }));
-          
-          setIsAuthenticated(true);
-        } else {
-          // API returned error (401, 403, etc.) - user not authenticated
-          console.log('User not authenticated. Status:', response.status);
-          setIsAuthenticated(false);
+// In your useEffect where you load user data, add this:
+useEffect(() => {
+  const checkAuthAndLoadData = async () => {
+    setCheckingAuth(true);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/user/getLoggedinUser', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
         }
-      } catch (err) {
-        // Network error or other issue
-        console.error('Error checking authentication:', err);
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('User authenticated. Fetched user data:', userData);
+        
+        // Update context with user data
+        if (setUserid && userData._id) {
+          setUserid(userData._id);
+        }
+        if (setName && userData.name) {
+          setName(userData.name);
+        }
+        if (setIsProfileCompleted && userData.isProfileCompleted !== undefined) {
+          setIsProfileCompleted(userData.isProfileCompleted);
+        }
+        
+        // Load existing profile photo from Cloudinary
+        if (userData.profilePhoto) {
+          setPhotoPreview(userData.profilePhoto);
+        }
+        
+        // Update form data
+        setFormData(prev => ({
+          ...prev,
+          name: userData.name || prev.name,
+          lastName: userData.lastName || prev.lastName,
+          dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : prev.dateOfBirth,
+          gender: userData.gender || prev.gender,
+          occupationType: userData.occupationType || prev.occupationType,
+          occupation: userData.occupation || prev.occupation,
+          height: userData.height || prev.height,
+          education: userData.education || prev.education,
+          languagesKnown: userData.languagesKnown || prev.languagesKnown,
+          fathersName: userData.fathersName || prev.fathersName,
+          fathersOccupation: userData.fathersOccupation || prev.fathersOccupation,
+          mothersName: userData.mothersName || prev.mothersName,
+          mothersOccupation: userData.mothersOccupation || prev.mothersOccupation,
+          residentCountry: userData.residentCountry || prev.residentCountry,
+          currentCity: userData.currentCity || prev.currentCity,
+          hometown: userData.hometown || prev.hometown,
+          interests: userData.interests || prev.interests,
+          disabilities: userData.disabilities || prev.disabilities,
+          futurePlans: userData.futurePlans || prev.futurePlans,
+          aboutMyself: userData.aboutMyself || prev.aboutMyself,
+          foodPreference: userData.foodPreference || prev.foodPreference,
+          gotra: userData.gotra || prev.gotra,
+          phoneNumber: userData.phoneNumber || prev.phoneNumber,
+        }));
+        
+        setIsAuthenticated(true);
+      } else {
+        console.log('User not authenticated. Status:', response.status);
         setIsAuthenticated(false);
-      } finally {
-        setCheckingAuth(false);
       }
-    };
+    } catch (err) {
+      console.error('Error checking authentication:', err);
+      setIsAuthenticated(false);
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
-    checkAuthAndLoadData();
-  }, []); // Run only once on mount
+  checkAuthAndLoadData();
+}, []);
+
 
 
   const handleInputChange = (e) => {
@@ -194,42 +199,44 @@ const Profile = () => {
   };
 
 
-  const handlePhotoUpload = async () => {
-    if (!photoFile) return;
+const handlePhotoUpload = async () => {
+  if (!photoFile) return;
 
+  setUploadingPhoto(true);
+  setError('');
+  setPhotoSuccess(false);
 
-    setUploadingPhoto(true);
-    setError('');
-    setPhotoSuccess(false);
+  try {
+    const formData = new FormData();
+    formData.append('profilePhoto', photoFile);
 
+    const response = await fetch('http://localhost:8000/api/v1/user/uploadProfilePhoto', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
 
-    try {
-      const formData = new FormData();
-      formData.append('profilePhoto', photoFile);
+    const data = await response.json();
 
-
-      const response = await fetch('http://localhost:8000/api/v1/user/uploadProfilePhoto', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-
-      const data = await response.json();
-
-
-      if (response.ok) {
-        setPhotoSuccess(true);
-        setTimeout(() => setPhotoSuccess(false), 3000);
-      } else {
-        setError(data.message || 'Failed to upload photo');
+    if (response.ok) {
+      setPhotoSuccess(true);
+      // Update preview with the Cloudinary URL
+      if (data.profilePhoto) {
+        setPhotoPreview(data.profilePhoto);
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
-    } finally {
-      setUploadingPhoto(false);
+      // Clear the file since it's now uploaded
+      setPhotoFile(null);
+      setTimeout(() => setPhotoSuccess(false), 3000);
+    } else {
+      setError(data.message || 'Failed to upload photo');
     }
-  };
+  } catch (err) {
+    setError('Network error. Please try again.');
+  } finally {
+    setUploadingPhoto(false);
+  }
+};
+
 
 
   const steps = [
